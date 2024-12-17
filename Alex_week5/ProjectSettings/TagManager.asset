@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Deadzone
   - Ground
+  - PlayerBullet
   layers:
   - Default
   - TransparentFX
