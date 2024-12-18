@@ -1,4 +1,7 @@
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -6,11 +9,17 @@ public class PlayerController : MonoBehaviour
     public float moveSpeed = 5;
     public float fastMoveSpeed = 20;
     public float jumpHeight = 10;
-    public float powerCooldown = 3;
-    public float powerLastUsed;
+    public bool hasLightningPower;
+    public bool hasSpeedPower;
+    public bool speedPowerOnCooldown;
+
+    public Image lightningIcon;
+    public Image speedIcon;
 
     [SerializeField] Transform focalPoint;
     [SerializeField] bool isGrounded;
+    [SerializeField] float lightningForce;
+    [SerializeField] GameObject lightningIndicator;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -25,8 +34,6 @@ public class PlayerController : MonoBehaviour
         float horizontalInput = Input.GetAxis("Horizontal");
         Vector2 moveDir = new Vector2(horizontalInput, verticalInput).normalized;
         playerRb.AddForce((focalPoint.forward * moveDir.y + focalPoint.right * moveDir.x) * moveSpeed);
-
-
         focalPoint.position = transform.position;
 
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
@@ -35,13 +42,21 @@ public class PlayerController : MonoBehaviour
             isGrounded = false;
         }
 
-        if (Input.GetKeyDown(KeyCode.LeftShift) && powerLastUsed > powerCooldown)
+        if (Input.GetKeyDown(KeyCode.LeftShift) && !speedPowerOnCooldown)
         {
-            playerRb.linearVelocity = focalPoint.forward * fastMoveSpeed;
-            powerLastUsed = 0;
+            StartCoroutine(SuperSpeedCooldown());
         }
 
-        powerLastUsed += Time.deltaTime;
+        if (hasSpeedPower && !speedPowerOnCooldown)
+        {
+            playerRb.linearVelocity = focalPoint.forward * fastMoveSpeed;
+        }
+
+        //The line below means that if hasLightningPower is true, the lightning ring will be active. If it's false, it'll be inactive
+        lightningIndicator.SetActive(hasLightningPower);
+        lightningIcon.enabled = hasLightningPower;
+        speedIcon.enabled = hasSpeedPower;
+        lightningIndicator.transform.position = transform.position;
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -57,5 +72,39 @@ public class PlayerController : MonoBehaviour
         {
             isGrounded = true;
         }
+
+        if (collision.transform.tag == "Enemy" && hasLightningPower)
+        {
+            //"collision" in the following lines refers to anything with the Enemy tag
+            Vector3 repelDirection = (collision.transform.position - transform.position).normalized;
+            Rigidbody enemyRb = collision.transform.GetComponent<Rigidbody>();
+            enemyRb.AddForce(repelDirection * lightningForce, ForceMode.Impulse);
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.tag == "LightningPower")
+        {
+            Destroy(other.gameObject);
+            StartCoroutine(LightingPowerCooldown());
+        }
+    }
+
+    IEnumerator LightingPowerCooldown()
+    {
+        hasLightningPower = true;
+        yield return new WaitForSeconds(5);
+        hasLightningPower = false;
+    }
+
+    IEnumerator SuperSpeedCooldown()
+    {
+        hasSpeedPower = true;
+        yield return new WaitForSeconds(0.75f);
+        hasSpeedPower = false;
+        speedPowerOnCooldown = true;
+        yield return new WaitForSeconds(2);
+        speedPowerOnCooldown = false;
     }
 }
