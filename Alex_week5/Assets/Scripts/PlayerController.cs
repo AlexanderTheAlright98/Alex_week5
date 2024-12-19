@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
     public Image lightningIcon;
     public Image speedIcon;
 
+    [SerializeField] int playerHP = 3;
     [SerializeField] Transform focalPoint;
     [SerializeField] bool isGrounded;
     [SerializeField] float lightningForce;
@@ -25,6 +26,7 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         playerRb = GetComponent<Rigidbody>();
+        Time.timeScale = 1;
     }
 
     // Update is called once per frame
@@ -54,15 +56,21 @@ public class PlayerController : MonoBehaviour
 
         //The line below means that if hasLightningPower is true, the lightning ring will be active. If it's false, it'll be inactive
         lightningIndicator.SetActive(hasLightningPower);
+        lightningIndicator.transform.position = transform.position;
         lightningIcon.enabled = hasLightningPower;
         speedIcon.enabled = hasSpeedPower;
-        lightningIndicator.transform.position = transform.position;
-    }
 
+        if (playerHP <= 0)
+        {
+            Time.timeScale = 0;
+            Destroy(gameObject);
+        }
+    }
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.collider.tag == "Deadzone")
         {
+            playerHP--;
             transform.position = new Vector3(0,0,0);
             playerRb.linearVelocity = Vector3.zero;
             playerRb.angularVelocity = Vector3.zero;
@@ -81,17 +89,15 @@ public class PlayerController : MonoBehaviour
             enemyRb.AddForce(repelDirection * lightningForce, ForceMode.Impulse);
         }
     }
-
     private void OnTriggerEnter(Collider other)
     {
         if(other.tag == "LightningPower")
         {
             Destroy(other.gameObject);
-            StartCoroutine(LightingPowerCooldown());
+            StartCoroutine(LightningPowerCooldown());
         }
     }
-
-    IEnumerator LightingPowerCooldown()
+    IEnumerator LightningPowerCooldown()
     {
         hasLightningPower = true;
         yield return new WaitForSeconds(5);

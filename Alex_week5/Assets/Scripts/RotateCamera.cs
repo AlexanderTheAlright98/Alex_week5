@@ -17,10 +17,6 @@ public class RotateCamera : MonoBehaviour
         float mouseXInput = Input.GetAxis("Mouse X");
         transform.Rotate(Vector3.up * mouseSensitivity * Time.deltaTime * mouseXInput);
 
-        //float mouseYInput = Input.GetAxis("Mouse Y");
-        //transform.GetChild(0).Rotate(Vector3.right * mouseSensitivity * Time.deltaTime * -mouseYInput);
-        //Mathf.Clamp(transform.GetChild(0).eulerAngles.x, -25, 25);
-
         Vector3 currentRotation = transform.GetChild(0).localEulerAngles;
         currentRotation.x += mouseSensitivity * Time.deltaTime * -Input.GetAxis("Mouse Y");
         if (currentRotation.x > 180) currentRotation.x -= 360;

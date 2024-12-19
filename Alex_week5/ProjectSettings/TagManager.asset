@@ -9,6 +9,8 @@ TagManager:
   - PlayerBullet
   - LightningPower
   - Enemy
+  - Boss
+  - Projectile
   layers:
   - Default
   - TransparentFX
