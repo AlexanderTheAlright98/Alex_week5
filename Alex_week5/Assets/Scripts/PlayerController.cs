@@ -2,21 +2,28 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
     public Rigidbody playerRb;
+    public Renderer rend;
+    public ParticleSystem speedParticle;
     public float moveSpeed = 5;
     public float fastMoveSpeed = 20;
     public float jumpHeight = 10;
     public bool hasLightningPower;
     public bool hasSpeedPower;
     public bool speedPowerOnCooldown;
+    public int playerHP = 3;
 
     public Image lightningIcon;
     public Image speedIcon;
 
-    [SerializeField] int playerHP = 3;
+    public AudioClip lightningAudio;
+    public AudioClip speedAudio;
+    private AudioSource sfxAudio;
+
     [SerializeField] Transform focalPoint;
     [SerializeField] bool isGrounded;
     [SerializeField] float lightningForce;
@@ -25,8 +32,10 @@ public class PlayerController : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        playerRb = GetComponent<Rigidbody>();
         Time.timeScale = 1;
+        playerRb = GetComponent<Rigidbody>();
+        rend = GetComponent<Renderer>();
+        sfxAudio = GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
@@ -47,6 +56,7 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.LeftShift) && !speedPowerOnCooldown)
         {
             StartCoroutine(SuperSpeedCooldown());
+            sfxAudio.PlayOneShot(speedAudio);
         }
 
         if (hasSpeedPower && !speedPowerOnCooldown)
@@ -63,7 +73,12 @@ public class PlayerController : MonoBehaviour
         if (playerHP <= 0)
         {
             Time.timeScale = 0;
-            Destroy(gameObject);
+            rend.enabled = false;
+
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                SceneManager.LoadScene("MainGame");
+            }
         }
     }
     private void OnCollisionEnter(Collision collision)
@@ -81,12 +96,13 @@ public class PlayerController : MonoBehaviour
             isGrounded = true;
         }
 
-        if (collision.transform.tag == "Enemy" && hasLightningPower)
+        if (collision.transform.tag == "Enemy" && hasLightningPower || collision.transform.tag == "Boss" && hasLightningPower)
         {
             //"collision" in the following lines refers to anything with the Enemy tag
             Vector3 repelDirection = (collision.transform.position - transform.position).normalized;
             Rigidbody enemyRb = collision.transform.GetComponent<Rigidbody>();
             enemyRb.AddForce(repelDirection * lightningForce, ForceMode.Impulse);
+            sfxAudio.PlayOneShot(lightningAudio);
         }
     }
     private void OnTriggerEnter(Collider other)

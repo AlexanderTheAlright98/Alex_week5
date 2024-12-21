@@ -12,8 +12,7 @@ public class SpawnManager : MonoBehaviour
     public float spawnRangeX, spawnRangeZ;
     public Transform enemyParent;
     public int enemyCount;
-
-    [SerializeField] int enemyWave = 1;
+    public int enemyWave = 1;
 
     void Start()
     {
@@ -37,7 +36,7 @@ public class SpawnManager : MonoBehaviour
     void EnemySpawning(int enemiesToSpawn)
     {
         int randomIndex = Random.Range(0, enemyPrefabs.Length);
-        for(int i = 0; i < enemiesToSpawn + 1; i++)
+        for(int i = 0; i < enemiesToSpawn + 2; i++)
         {
             Instantiate(enemyPrefabs[randomIndex], EnemySpawnPosition(), Quaternion.identity, enemyParent);
         }
